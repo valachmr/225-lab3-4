@@ -39,6 +39,7 @@ pipeline {
                         docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push()
                     }
                 }
+                sh "sleep 15"
             }
         }
 
