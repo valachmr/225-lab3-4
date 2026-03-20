@@ -49,8 +49,9 @@ pipeline {
                     def kubeConfig = readFile(KUBECONFIG)
                     // This updates the deployment-dev.yaml to use the new image tag
                     sh """
-                    sed -i 's|image: .*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml
-                    """
+                    kubectl set image deployment/dev-deployment nginx=${DOCKER_IMAGE}:${IMAGE_TAG}
+                    kubectl rollout status deployment/dev-deployment
+                """
                     sh "kubectl apply -f deployment-dev.yaml"
                 }
             }
@@ -61,7 +62,8 @@ pipeline {
                     // Set up Kubernetes configuration using the specified KUBECONFIG
                     //sh "ls -la"
                     sh """
-                    sed -i 's|image: .*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-prod.yaml
+                    kubectl set image deployment/prod-deployment nginx=${DOCKER_IMAGE}:${IMAGE_TAG}
+                    kubectl rollout status deployment/prod-deployment
                     """
                     sh "kubectl apply -f deployment-prod.yaml"
                 }

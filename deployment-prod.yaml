@@ -15,6 +15,7 @@ spec:
       containers:
       - name: nginx
         image: cithit/valachmr:latest                              #<-------change this to match your MiamiID.
+        imagePullPolicy: Always
         ports:
         - containerPort: 80  # Expose NGINX on port 80      
 ---
