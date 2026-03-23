@@ -9,7 +9,7 @@ pipeline {
         KUBECONFIG = credentials('valachmr-225-sp26')             //<-----change this to match your kubernetes credentials (MiamiID-225)!  1 More change on line 63!
     }
 
-     stages {
+    stages {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']],
@@ -44,35 +44,22 @@ pipeline {
 
         stage('Deploy to Dev Environment') {
             steps {
-                withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
-                sh '''
-                    export KUBECONFIG=$KUBECONFIG
-
-                    echo "=== DEBUG: kubeconfig ==="
-                    kubectl config view
-
-                    echo "=== DEBUG: cluster access ==="
-                    kubectl get pods
-
-                    sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-dev.yaml
-
-                    kubectl apply -f deployment-dev.yaml
-                '''
+                script {
+                    // This sets up the Kubernetes configuration using the specified KUBECONFIG
+                    def kubeConfig = readFile(KUBECONFIG)
+                    // This updates the deployment-dev.yaml to use the new image tag
+                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
+                    sh "kubectl apply -f deployment-dev.yaml"
                 }
-            }
-        }
             }
         }
         stage('Deploy to Prod Environment') {
             steps {
-                withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
-                sh '''
-                    export KUBECONFIG=$KUBECONFIG
-
-                    sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-prod.yaml
-
-                    kubectl apply -f deployment-prod.yaml
-                '''
+                script {
+                    // Set up Kubernetes configuration using the specified KUBECONFIG
+                    //sh "ls -la"
+                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-prod.yaml"
+                    sh "kubectl apply -f deployment-prod.yaml"
                 }
             }
         }
