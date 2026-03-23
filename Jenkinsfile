@@ -44,24 +44,35 @@ pipeline {
 
         stage('Deploy to Dev Environment') {
             steps {
-                script {
-                    // This sets up the Kubernetes configuration using the specified KUBECONFIG
-                    def kubeConfig = readFile(KUBECONFIG)
-                    // This updates the deployment-dev.yaml to use the new image tag
-                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
-                    kubectl config view  // debug 1
-                    kubectl get pods  // debug 2
-                    sh "kubectl apply -f deployment-dev.yaml"
-                }
+                steps {
+        withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
+            sh '''
+                export KUBECONFIG=$KUBECONFIG
+
+                echo "=== DEBUG: kubeconfig ==="
+                kubectl config view
+
+                echo "=== DEBUG: cluster access ==="
+                kubectl get pods
+
+                sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-dev.yaml
+
+                kubectl apply -f deployment-dev.yaml
+            '''
+        }
+    }
             }
         }
         stage('Deploy to Prod Environment') {
             steps {
-                script {
-                    // Set up Kubernetes configuration using the specified KUBECONFIG
-                    //sh "ls -la"
-                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-prod.yaml"
-                    sh "kubectl apply -f deployment-prod.yaml"
+                withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
+                sh '''
+                    export KUBECONFIG=$KUBECONFIG
+
+                    sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-prod.yaml
+
+                    kubectl apply -f deployment-prod.yaml
+                '''
                 }
             }
         }
