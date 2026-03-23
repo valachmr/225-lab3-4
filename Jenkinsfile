@@ -44,23 +44,23 @@ pipeline {
 
         stage('Deploy to Dev Environment') {
             steps {
-                steps {
-        withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
-            sh '''
-                export KUBECONFIG=$KUBECONFIG
+                withCredentials([file(credentialsId: 'valachmr-225-sp26', variable: 'KUBECONFIG')]) {
+                sh '''
+                    export KUBECONFIG=$KUBECONFIG
 
-                echo "=== DEBUG: kubeconfig ==="
-                kubectl config view
+                    echo "=== DEBUG: kubeconfig ==="
+                    kubectl config view
 
-                echo "=== DEBUG: cluster access ==="
-                kubectl get pods
+                    echo "=== DEBUG: cluster access ==="
+                    kubectl get pods
 
-                sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-dev.yaml
+                    sed -i "s|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|" deployment-dev.yaml
 
-                kubectl apply -f deployment-dev.yaml
-            '''
+                    kubectl apply -f deployment-dev.yaml
+                '''
+                }
+            }
         }
-    }
             }
         }
         stage('Deploy to Prod Environment') {
